@@ -11,9 +11,8 @@
 ;                  Removes our path from the AutoIt Include registry value without affecting
 ;                  other vendor paths that may be registered there.
 ; Note ..........: Requires administrator rights to delete from Program Files.
-; Note ..........: This script is compiled to TryCatchUninstaller.exe by the GitHub Actions
-;                  release workflow and embedded in the installer via FileInstall, then copied
-;                  to the lint install folder so Add/Remove Programs can find it.
+; Note ..........: Source files are embedded into the compiled .exe via FileInstall at
+;                  compile time, then copied to the lint install folder so Add/Remove Programs can find it.
 ; ===============================================================================================================================
 
 #RequireAdmin
