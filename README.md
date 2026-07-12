@@ -4,11 +4,13 @@ A try/catch pattern implementation for AutoIt. Brings structured exception handl
 
 ## Features
 
-- Compatible try/catch functions that skip automatically when a prior exception is on the stack
-- Named exception types with an inheritance hierarchy - catch specific types or entire families
-- `_TryWith()` to integrate any existing AutoIt function that uses `@error`/`SetError()` into the exception model without modifying it
-- Stack trace inspection via `_StackTrace()` and `_FormatStackTrace()`
-- TryCatchLint static analysis tool for SciTE - detects unbalanced `_Try()`/`_EndTry()` calls and unregistered exception names before runtime
+AutoIt TryCatch Solution brings the try/catch pattern to AutoIt, giving developers a structured way to handle errors:
+
+- **Compatible try/catch functions** - write functions that skip automatically when a prior exception is on the stack, keeping the happy path clean
+- **Named exception types with hierarchy** - define exceptions like `FileException` extending `IOException`, and catch entire families of related errors in one handler
+- **Integration with existing code** - `_TryWith()` wraps any AutoIt function that uses `@error`/`SetError()` into the exception model without modifying it
+- **Stack trace inspection** - `_StackTrace()` and `_FormatStackTrace()` let you inspect the current exception scope at any point
+- **TryCatchLint** - static analysis tool for SciTE that detects unbalanced `_Try()`/`_EndTry()` calls and unregistered exception names before your code even runs
 
 ## Quick Example
 
