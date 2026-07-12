@@ -539,7 +539,7 @@ Func __RunInstall($idStatusLabel, $idProgress)
     $iStep += 1
 
     __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Copying TryCatchUninstaller.exe...")
-    FileInstall("TryCatchUninstaller.exe", $g_sChmPath & "\TryCatchUninstaller.exe", $FC_OVERWRITE)
+    FileInstall("..\..\.out\TryCatchUninstaller.exe", $g_sChmPath & "\TryCatchUninstaller.exe", $FC_OVERWRITE)
     $iStep += 1
 
     If $g_bSciTEFound Then

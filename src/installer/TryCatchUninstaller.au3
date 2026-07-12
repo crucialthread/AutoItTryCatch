@@ -1,3 +1,21 @@
+; *** Start added by AutoIt3Wrapper ***
+#include <FileConstants.au3>
+#include <WindowsStylesConstants.au3>
+; *** End added by AutoIt3Wrapper ***
+#RequireAdmin
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Outfile_x64=..\..\.out\TryCatchUninstaller.exe
+#AutoIt3Wrapper_Res_Comment=A try/catch pattern implementation for AutoIt
+#AutoIt3Wrapper_Res_Description=A try/catch pattern implementation for AutoIt
+#AutoIt3Wrapper_Res_Fileversion=0.0.1
+#AutoIt3Wrapper_Res_ProductName=AutoItTryCatch
+#AutoIt3Wrapper_Res_ProductVersion=0.0.1
+#AutoIt3Wrapper_Res_CompanyName=Crucial Thread
+#AutoIt3Wrapper_Res_LegalCopyright=MIT
+#AutoIt3Wrapper_Res_SaveSource=y
+#AutoIt3Wrapper_Res_Language=1033
+#AutoIt3Wrapper_Add_Constants=n
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ; #INDEX# =======================================================================================================================
 ; Title .........: TryCatchUninstaller.au3
 ; Version .......: 0.0.1
@@ -16,7 +34,6 @@
 ;                  Add/Remove Programs can find it.
 ; ===============================================================================================================================
 
-#RequireAdmin
 #include <FontConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <WindowsConstants.au3>
