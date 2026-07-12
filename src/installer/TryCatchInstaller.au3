@@ -1,3 +1,21 @@
+; *** Start added by AutoIt3Wrapper ***
+#include <WindowsStylesConstants.au3>
+; *** End added by AutoIt3Wrapper ***
+#RequireAdmin
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=..\..\img\installer.ico
+#AutoIt3Wrapper_Outfile_x64=..\..\.out\TryCatchInstaller.exe
+#AutoIt3Wrapper_Res_Comment=A try/catch pattern implementation for AutoIt
+#AutoIt3Wrapper_Res_Description=AutoItTryCatch Installer
+#AutoIt3Wrapper_Res_Fileversion=0.0.1
+#AutoIt3Wrapper_Res_ProductName=AutoItTryCatch
+#AutoIt3Wrapper_Res_ProductVersion=0.0.1
+#AutoIt3Wrapper_Res_CompanyName=Crucial Thread
+#AutoIt3Wrapper_Res_LegalCopyright=MIT License
+#AutoIt3Wrapper_Res_SaveSource=y
+#AutoIt3Wrapper_Res_Language=1033
+#AutoIt3Wrapper_Add_Constants=n
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ; #INDEX# =======================================================================================================================
 ; Title .........: TryCatchInstaller.au3
 ; Version .......: 0.0.1
@@ -20,7 +38,6 @@
 ;                  The compiled .exe is fully self-contained and can be run from any location.
 ; ===============================================================================================================================
 
-#RequireAdmin
 #include <FontConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <WindowsConstants.au3>
