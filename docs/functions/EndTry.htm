@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_EndTry - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_EndTry</h1>
+
+<p>Closes the current try scope.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_EndTry ( [$bForceReset = False] )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$bForceReset</td><td><b>[optional]</b> Pass <a href="../constants.htm">$FORCE_RESET</a> to reset the entire try/catch state regardless of nesting depth. Default is <code>False</code> (close exactly one level). See Remarks.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>None.</td><td>When used as <code>Return _EndTry()</code>, the enclosing function returns the default value for its return type.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    Closes the most recently opened try scope. Every <code>_Try()</code> must have
+    exactly one corresponding <code>_EndTry()</code>.
+</p>
+<p>
+    <b>Early return pattern:</b> if you need to return from inside a try scope, call
+    <code>_EndTry()</code> before returning. Two supported patterns:
+</p>
+<pre>
+; Pattern 1 - single line
+If SomeCondition() Then Return _EndTry()
+
+; Pattern 2 - separate lines (use when returning a specific value)
+If SomeCondition() Then
+    _EndTry()
+    Return $someValue
+EndIf
+</pre>
+
+<div class="warning">
+    <b>Warning - $FORCE_RESET:</b> passing <code>$FORCE_RESET</code> resets the entire
+    internal try/catch state to zero, regardless of how many try levels are currently
+    open. This is an edge case for crash recovery or test teardown scenarios only.
+    Do not use it as a substitute for properly balanced <code>_Try()</code>/
+    <code>_EndTry()</code> calls in normal code.
+</div>
+
+<h2>Related</h2>
+<p>
+    <a href="Try.htm">_Try</a>,
+    <a href="Catch.htm">_Catch</a>,
+    <a href="../constants.htm">$FORCE_RESET</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+; Early return pattern
+Func _ProcessConfig($sPath)
+    _Try()
+        If Not FileExists($sPath) Then Return _EndTry()
+        _ReadConfig($sPath)
+    Local $e
+    If _Catch($e, _AsExceptionType("FileException")) Then
+        ConsoleWrite("Error: " & $e.sMessage & @CRLF)
+    EndIf
+    _EndTry()
+EndFunc
+
+_ProcessConfig("config.ini")
+</pre>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_RegisterException - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_RegisterException</h1>
+
+<p>Registers a named exception type in the global exception registry.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_RegisterException ( $sName [, $sMessage = "" [, $sParent = "" [, $iCode = 0]]] )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The name for this exception type (e.g. <code>"FileException"</code>). Invalid identifier characters are stripped automatically. Cannot be empty after sanitization or equal to <code>"TryCatchException"</code> (the root type, which is reserved).</td></tr>
+<tr><td>$sMessage</td><td><b>[optional]</b> A human-readable default message. If omitted or empty, falls back to the sanitized name itself.</td></tr>
+<tr><td>$sParent</td><td><b>[optional]</b> The parent exception type name. If omitted, the type is rooted directly under <code>"TryCatchException"</code>. If the parent has not been registered yet, it is auto-registered. Self-inheritance returns <code>False</code>.</td></tr>
+<tr><td>$iCode</td><td><b>[optional]</b> A specific numeric code. If omitted or not a valid positive integer, an auto-incremented code is assigned.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>True</td><td>Registration succeeded.</td></tr>
+<tr><td>False</td><td>Registration failed: name sanitized to empty, name is <code>"TryCatchException"</code> (reserved), or self-inheritance detected.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    Registration is typically done once at the top of a library or script, before any
+    try/catch blocks execute. Registering an already-registered name overwrites the
+    existing entry - the new message, parent, and code replace the old ones.
+</p>
+<p>
+    <b>Name sanitization:</b> invalid characters are stripped silently rather than
+    rejected. For example, <code>"My Exception!"</code> becomes <code>"MyException"</code>.
+</p>
+<p>
+    <b>Message fallback:</b> if <code>$sMessage</code> is omitted or empty, the message
+    defaults to the sanitized name. Every registered exception always has a non-empty message.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="ThrowException.htm">_ThrowException</a>,
+    <a href="IsExceptionOf.htm">_IsExceptionOf</a>,
+    <a href="IsExceptionExists.htm">_IsExceptionExists</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+; Register a hierarchy
+_RegisterException("IOException",      "An I/O operation failed")
+_RegisterException("FileException",    "A file operation failed",    "IOException")
+_RegisterException("NetworkException", "A network operation failed", "IOException")
+
+; Message falls back to name when omitted
+_RegisterException("TimeoutException")
+ConsoleWrite(_GetExceptionMessage("TimeoutException") & @CRLF) ; Output: TimeoutException
+
+; Name sanitization
+_RegisterException("My Exception!")
+ConsoleWrite(_IsExceptionExists("MyException") & @CRLF) ; True
+
+; Overwrite
+_RegisterException("FileException", "Updated message")
+ConsoleWrite(_GetExceptionMessage("FileException") & @CRLF) ; Updated message
+</pre>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lint Tool - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>TryCatchLint - Static Analysis Tool</h1>
+
+<p>
+    <b>TryCatchLint</b> is a static analysis tool that checks <code>.au3</code> files
+    for common TryCatch usage mistakes before they reach runtime. It integrates with
+    SciTE's Tools menu and can also be run from the command line.
+</p>
+
+<hr>
+
+<h2>What It Checks</h2>
+
+<h3>Check 1 - Unbalanced _Try()/_EndTry() calls</h3>
+<p>
+    Every <code>_Try()</code> must have a corresponding <code>_EndTry()</code>.
+    Failing to close a try scope corrupts the internal depth counter and causes
+    unpredictable behavior at runtime. TryCatchLint detects this at the per-function
+    level, so an imbalance in one function does not mask an imbalance in another.
+</p>
+<p>
+    The early-return pattern (<code>Return _EndTry()</code> or
+    <code>_EndTry()</code> followed by <code>Return value</code>) is correctly
+    accounted for - a <code>Return</code> inside an open try scope is counted as
+    requiring its own <code>_EndTry()</code>, so valid early-return code is not
+    flagged as unbalanced.
+</p>
+
+<h3>Check 2 - Unregistered exception name references</h3>
+<p>
+    Exception names passed as literal strings to <code>_ThrowException()</code> or
+    <code>_Catch()</code> are compared against names registered via
+    <code>_RegisterException()</code> in the same file. Any name not found in the
+    registry is reported as a warning - it is likely a typo, or the exception relies
+    on auto-registration (which is allowed but should be used with care).
+</p>
+
+<hr>
+
+<h2>Running from the Command Line</h2>
+
+<p>TryCatchLint can be run directly from any command line, independently of SciTE:</p>
+
+<div class="signature">
+AutoIt3.exe TryCatchLint.au3 "C:\path\to\script.au3"
+</div>
+
+<p>Output lines use the exact <code>Au3Check</code> error format that SciTE recognizes:</p>
+
+<pre>
+"C:\path\to\script.au3"(14,1) : error: Unbalanced _Try()/_EndTry()...
+"C:\path\to\script.au3"(22,1) : warning: 'TypoException' is not registered...
+</pre>
+
+<p><b>Exit codes:</b></p>
+<table>
+<tr><td>0</td><td>No issues found.</td></tr>
+<tr><td>2</td><td>One or more errors found. Matches Au3Check's own exit code convention.</td></tr>
+</table>
+
+<p>
+    This makes TryCatchLint usable as a pass/fail gate in build scripts or CI pipelines.
+</p>
+
+<hr>
+
+<h2>SciTE Integration</h2>
+
+<p>
+    The installer registers TryCatchLint as a SciTE Tools menu command automatically.
+    Once registered, it is available as <b>TryCatch Lint</b> in the Tools menu
+    (default shortcut: <b>Ctrl+Alt+L</b>).
+</p>
+<p>
+    Running it from SciTE works exactly like Go/Build - output appears in the console
+    pane using the Au3Check error format, so SciTE inline-highlights the offending line
+    and automatically jumps to the first finding.
+</p>
+
+<h3>Self-Registration</h3>
+<p>
+    If you installed the core libraries manually (without using the installer), you
+    can register the lint tool in SciTE by opening <code>TryCatchLint.au3</code>
+    directly in SciTE and pressing <b>F5/Go</b> with no arguments. This triggers
+    the self-registration flow, which:
+</p>
+<ul style="margin: 6px 0 6px 20px;">
+    <li>Detects whether TryCatch Lint is already registered in SciTEUser.properties</li>
+    <li>Finds the next available Tools menu slot (minimum slot 40, per SciTE convention)</li>
+    <li>Writes the registration block to SciTEUser.properties</li>
+    <li>Prompts you to restart SciTE for the change to take effect</li>
+</ul>
+<p>
+    Running self-registration on an already-registered installation offers to overwrite
+    the existing entry - useful after moving the installation to a different path.
+</p>
+
+<hr>
+
+<h2>Known Limitations</h2>
+
+<p>
+    TryCatchLint is a <b>text-based scanner</b>, not a real AutoIt parser. It operates
+    on raw source lines using regular expressions and has the following known limitations:
+</p>
+
+<table>
+<tr>
+    <td>No #include following</td>
+    <td>Only the file being linted is scanned. Exception names registered in included files are not visible to Check 2, so references to them may be reported as warnings even if correct.</td>
+</tr>
+<tr>
+    <td>Line continuation</td>
+    <td>Calls split across multiple lines using the <code>_</code> continuation character may not be detected correctly.</td>
+</tr>
+<tr>
+    <td>String literals</td>
+    <td>Try/catch-looking text inside string literals (e.g. in test headers) is correctly ignored - string contents are stripped before pattern matching for Check 1.</td>
+</tr>
+<tr>
+    <td>Block comments</td>
+    <td>#cs/#ce block comments are correctly ignored, with line numbers preserved accurately after removal.</td>
+</tr>
+</table>
+
+<p>
+    Treat TryCatchLint findings as strong hints rather than guarantees. False positives
+    are possible in unusual formatting scenarios.
+</p>
+
+</body>
+</html>

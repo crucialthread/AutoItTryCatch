@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+</HEAD>
+<BODY>
+<UL>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_AsErrCode">
+        <param name="Local" value="html\functions\AsErrCode.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_AsExceptionType">
+        <param name="Local" value="html\functions\AsExceptionType.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_Catch">
+        <param name="Local" value="html\functions\Catch.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_EndTry">
+        <param name="Local" value="html\functions\EndTry.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_ExtendsException">
+        <param name="Local" value="html\functions\ExtendsException.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_FormatStackTrace">
+        <param name="Local" value="html\functions\FormatStackTrace.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_GetExceptionCode">
+        <param name="Local" value="html\functions\GetExceptionCode.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_GetExceptionMessage">
+        <param name="Local" value="html\functions\GetExceptionMessage.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_GetExceptionParent">
+        <param name="Local" value="html\functions\GetExceptionParent.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_IsExceptionExists">
+        <param name="Local" value="html\functions\IsExceptionExists.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_IsExceptionOf">
+        <param name="Local" value="html\functions\IsExceptionOf.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_NoErr">
+        <param name="Local" value="html\functions\NoErr.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_OnErrorResume">
+        <param name="Local" value="html\functions\OnErrorResume.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_RegisterException">
+        <param name="Local" value="html\functions\RegisterException.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_StackTrace">
+        <param name="Local" value="html\functions\StackTrace.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_ThrowException">
+        <param name="Local" value="html\functions\ThrowException.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_Try">
+        <param name="Local" value="html\functions\Try.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="_TryWith">
+        <param name="Local" value="html\functions\TryWith.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="$EXCEPTION_ROOT">
+        <param name="Local" value="html\constants.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="$FORCE_RESET">
+        <param name="Local" value="html\constants.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="concepts">
+        <param name="Local" value="html\concepts.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="exception hierarchy">
+        <param name="Local" value="html\concepts.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="getting started">
+        <param name="Local" value="html\getting-started.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="installation">
+        <param name="Local" value="html\getting-started.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="lint">
+        <param name="Local" value="html\lint.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="static analysis">
+        <param name="Local" value="html\lint.htm">
+    </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+        <param name="Name" value="try catch">
+        <param name="Local" value="html\getting-started.htm">
+    </OBJECT>
+</UL>
+</BODY>
+</HTML>

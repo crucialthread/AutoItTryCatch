@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_Catch - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_Catch</h1>
+
+<p>Checks the current scope's exception stack for a matching entry and returns True if found.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_Catch ( ByRef $eOut [, $vType = ""] )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$eOut</td><td>A variable (passed ByRef) that receives the caught exception entry on match. The entry exposes three properties:<br><br>
+    <code>$eOut.sException</code> - the exception type name<br>
+    <code>$eOut.sMessage</code> - the exception message<br>
+    <code>$eOut.sSource</code> - the function name that threw the exception, or <code>$UNDEFINED_SOURCE</code> for <code>_TryWith()</code> entries<br>
+</td></tr>
+<tr><td>$vType</td><td><b>[optional]</b> The exception type to match against. Accepts:<br><br>
+    - A bare string: <code>"FileException"</code><br>
+    - A value from <a href="AsExceptionType.htm">_AsExceptionType()</a>: <code>_AsExceptionType("FileException")</code> or <code>_AsExceptionType("FileException,NetworkException")</code><br>
+    - Omitted or empty: catch-all, matches any exception (equivalent to matching <code>"TryCatchException"</code>, the root type)<br><br>
+    Type matching respects the exception hierarchy - catching a parent type also catches all descendant types.
+</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>True</td><td>A matching exception entry was found on the scope's stack and this scope has not already been matched. <code>$eOut</code> is populated with the latest matching entry.</td></tr>
+<tr><td>False</td><td>No matching entry was found, or this scope has already been matched by a prior <code>_Catch()</code> call.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    <b>Single match per scope:</b> once a <code>_Catch()</code> call returns
+    <code>True</code> in a given try scope, all subsequent <code>_Catch()</code> calls
+    in the same scope return <code>False</code>. This ensures only one handler runs per
+    scope and makes <code>If</code>/<code>ElseIf</code> chains work as expected.
+</p>
+<p>
+    <b>Latest entry wins:</b> when multiple exception entries exist on the scope's stack,
+    <code>_Catch()</code> returns the latest one that matches the specified type.
+</p>
+<p>
+    <b>List order when using _AsExceptionType():</b> when a comma-separated list is
+    passed, the first type in the list is checked first, regardless of which exception
+    was added most recently to the stack.
+</p>
+<p>
+    <b>Using _AsExceptionType() is recommended</b> even for single types, as it
+    improves readability and consistency. A bare string is also accepted.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="Try.htm">_Try</a>,
+    <a href="EndTry.htm">_EndTry</a>,
+    <a href="AsExceptionType.htm">_AsExceptionType</a>,
+    <a href="OnErrorResume.htm">_OnErrorResume</a>,
+    <a href="ThrowException.htm">_ThrowException</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("IOException",      "An I/O operation failed")
+_RegisterException("FileException",    "A file operation failed",    "IOException")
+_RegisterException("NetworkException", "A network operation failed", "IOException")
+
+Func _ReadFile($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadFile), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    _ReadFile("config.ini")
+Local $e
+If _Catch($e, "FileException") Then
+    ; bare string - also valid
+    ConsoleWrite("File error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e, _AsExceptionType("NetworkException")) Then
+    ; _AsExceptionType - recommended pattern
+    ConsoleWrite("Network error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e, _AsExceptionType("FileException,NetworkException")) Then
+    ; multiple types in one handler
+    ConsoleWrite("I/O error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e) Then
+    ; catch-all
+    ConsoleWrite("Unexpected: " & $e.sException & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_ThrowException - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_ThrowException</h1>
+
+<p>Adds a named exception entry to the current scope's stack. Used inside compatible try/catch functions to signal failure.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_ThrowException ( $sName [, $sMessage = "" [, $sCaller = ""]] )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The exception type name to throw (e.g. <code>"FileException"</code>). If the name has not been registered via <code>_RegisterException()</code>, it is auto-registered. Use with care - unregistered names are often typos. The <a href="../lint.htm">TryCatchLint</a> tool warns about them.</td></tr>
+<tr><td>$sMessage</td><td><b>[optional]</b> A specific message for this throw, overriding the registered default message. Typically includes context-specific details such as a file path or parameter value.</td></tr>
+<tr><td>$sCaller</td><td><b>[optional]</b> The name of the function throwing the exception. Pass the function's own name here so the exception entry correctly identifies its source. Used to populate <code>$e.sSource</code> in the caught entry.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>Returns the exception's numeric code - the value specified in <code>_RegisterException()</code> for this type, or an auto-incremented code if none was specified. This return value is designed for inline use with <code>SetError()</code> in the compatible function throw pattern.</td></tr>
+<tr><td>Outside a try scope</td><td>Returns <code>0</code>. The entry is not added since no scope is active.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    <code>_ThrowException()</code> is designed to be used inside <b>compatible try/catch
+    functions</b> together with <code>_OnErrorResume()</code>. Its primary purpose is
+    to add a named exception entry to the scope's stack so that:
+</p>
+<ul style="margin: 6px 0 6px 20px; line-height: 1.8;">
+    <li>Subsequent compatible functions (checking <code>_OnErrorResume()</code>) skip their execution</li>
+    <li>Subsequent <code>_TryWith(_NoErr() ? ... : Null)</code> calls are also skipped</li>
+    <li><code>_Catch()</code> can match and handle the exception by name</li>
+</ul>
+<p>
+    <b>Always use the following pattern</b> when throwing inside a compatible function:
+</p>
+<pre>
+Return SetError(_ThrowException("ExceptionName", "message", _FunctionName), 0, False)
+</pre>
+<p>
+    This single line throws the exception, records the calling function as the source,
+    and returns from the function in one step. The return value of <code>_ThrowException()</code>
+    (the exception's numeric code) becomes the <code>@error</code> value via
+    <code>SetError()</code>, which compatible callers can inspect if needed.
+</p>
+<p>
+    <b>Auto-registration:</b> if the exception name has not been registered,
+    <code>_ThrowException()</code> auto-registers it. Use with care since unregistered
+    names are often typos. Always prefer explicit registration via
+    <code>_RegisterException()</code>.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="OnErrorResume.htm">_OnErrorResume</a>,
+    <a href="Catch.htm">_Catch</a>,
+    <a href="RegisterException.htm">_RegisterException</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException",    "A file operation failed")
+_RegisterException("ParseException",   "A parse operation failed")
+_RegisterException("NetworkException", "A network operation failed")
+
+; A compatible function can have multiple operations and throw different exceptions
+; depending on what fails - there is no restriction on the number of instructions
+; or the number of different exception types it may throw.
+Func _LoadAndProcessConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+
+    ; First check - file existence
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Config not found: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    ; Second check - file readable
+    Local $sContent = FileRead($sPath)
+    If @error Then
+        Return SetError(_ThrowException("FileException", "Could not read: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    ; Third check - content valid
+    If StringLen($sContent) = 0 Then
+        Return SetError(_ThrowException("ParseException", "Config file is empty: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    ; Fourth check - required key present
+    If Not StringInStr($sContent, "[Settings]") Then
+        Return SetError(_ThrowException("ParseException", "Missing [Settings] section in: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    Return $sContent
+EndFunc
+
+_Try()
+    Local $sConfig = _LoadAndProcessConfig("config.ini")
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite("File error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e, _AsExceptionType("ParseException")) Then
+    ConsoleWrite("Parse error: " & $e.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

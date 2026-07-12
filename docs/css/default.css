@@ -1,0 +1,134 @@
+/* AutoIt TryCatch Solution Help - default.css
+   Matches the AutoIt3 CHM help visual style.
+   Compatible with IE engine (CHM) and modern browsers (static web). */
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #000000;
+    background-color: #FFFFFF;
+    margin: 0;
+    padding: 0 16px 16px 16px;
+}
+
+h1 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000;
+    border-bottom: 1px solid #AAAAAA;
+    padding-bottom: 4px;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #000000;
+    border-bottom: 1px solid #DDDDDD;
+    padding-bottom: 2px;
+    margin-top: 16px;
+    margin-bottom: 6px;
+}
+
+h3 {
+    font-size: 13px;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+p {
+    margin: 6px 0;
+    line-height: 1.5;
+}
+
+a {
+    color: #000099;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.signature {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    background-color: #F4F4F4;
+    border: 1px solid #CCCCCC;
+    padding: 6px 10px;
+    margin: 8px 0;
+}
+
+pre {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    background-color: #F4F4F4;
+    border: 1px solid #CCCCCC;
+    padding: 8px 10px;
+    margin: 8px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+
+code {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 6px 0 10px 0;
+    font-size: 13px;
+}
+
+table td {
+    border: 1px solid #CCCCCC;
+    padding: 4px 8px;
+    vertical-align: top;
+}
+
+table td:first-child {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    white-space: nowrap;
+    width: 1%;
+    background-color: #F4F4F4;
+}
+
+.topnav {
+    font-size: 12px;
+    background-color: #F0F0F0;
+    border-bottom: 1px solid #CCCCCC;
+    padding: 4px 8px;
+    margin: 0 -16px 12px -16px;
+}
+
+.topnav a {
+    color: #000099;
+    margin-right: 12px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #AAAAAA;
+    margin: 10px 0;
+}
+
+.note {
+    background-color: #FFFFF0;
+    border-left: 3px solid #CCCC00;
+    padding: 4px 8px;
+    margin: 8px 0;
+    font-size: 12px;
+}
+
+.warning {
+    background-color: #FFF0F0;
+    border-left: 3px solid #CC0000;
+    padding: 4px 8px;
+    margin: 8px 0;
+    font-size: 12px;
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_FormatStackTrace - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+<h1>Function Reference</h1>
+<hr>
+<h1>_FormatStackTrace</h1>
+<p>Formats exception stack entries as a human-readable string.</p>
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_FormatStackTrace ( $mEntries, $iCount )
+</div>
+<h2>Parameters</h2>
+<table>
+<tr><td>$mEntries</td><td>The array of stack entries returned by <a href="StackTrace.htm">_StackTrace()</a>.</td></tr>
+<tr><td>$iCount</td><td>The number of entries in the array.</td></tr>
+</table>
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>A formatted multi-line string representing the exception stack entries, suitable for logging or display.</td></tr>
+</table>
+<h2>Remarks</h2>
+<p>Typically used by passing <code>_FormatStackTrace</code> as the handler argument to <code>_StackTrace()</code>:</p>
+<pre>
+ConsoleWrite(_StackTrace(_FormatStackTrace) & @CRLF)
+</pre>
+<h2>Related</h2>
+<p><a href="StackTrace.htm">_StackTrace</a></p>
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadFile($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadFile), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    _ReadFile("missing.ini")
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite(_StackTrace(_FormatStackTrace) & @CRLF)
+EndIf
+_EndTry()
+</pre>
+</body>
+</html>

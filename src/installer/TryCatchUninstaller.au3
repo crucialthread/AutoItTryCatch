@@ -1,5 +1,5 @@
 ; #INDEX# =======================================================================================================================
-; Title .........: AutoIt TryCatch - Uninstaller
+; Title .........: TryCatchUninstaller.au3
 ; Version .......: 0.0.1
 ; AutoIt Version : 3.3.18.0
 ; Author ........: Crucial Thread
@@ -11,11 +11,13 @@
 ;                  Removes our path from the AutoIt Include registry value without affecting
 ;                  other vendor paths that may be registered there.
 ; Note ..........: Requires administrator rights to delete from Program Files.
-; Note ..........: Source files are embedded into the compiled .exe via FileInstall at
-;                  compile time, then copied to the lint install folder so Add/Remove Programs can find it.
+; Note ..........: This script is compiled to TryCatchUninstaller.exe and embedded in the
+;                  installer via FileInstall, then copied to the lint install folder so
+;                  Add/Remove Programs can find it.
 ; ===============================================================================================================================
 
 #RequireAdmin
+#include <FontConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <WindowsConstants.au3>
 #include <ButtonConstants.au3>
@@ -29,8 +31,20 @@
 ; ===============================================================================================================================
 
 Global Const $UNINSTALLER_TITLE  = "AutoIt TryCatch Solution Uninstall"
-Global Const $WIN_WIDTH          = 500
-Global Const $WIN_HEIGHT         = 400
+
+Global Const $WIN_WIDTH          = 540
+Global Const $WIN_HEIGHT         = 380
+Global Const $FONT_FACE          = "Segoe UI"
+Global Const $FONT_SIZE          = 11
+Global Const $BTN_W              = 130
+Global Const $BTN_H              = 34
+Global Const $BTN_GAP            = 10
+Global Const $BTN_Y              = $WIN_HEIGHT - 48
+Global Const $FOOTER_SEP_Y       = $WIN_HEIGHT - 58
+Global Const $HEADER_H           = 70
+Global Const $CONTENT_TOP        = $HEADER_H + 10
+Global Const $CONTENT_W          = $WIN_WIDTH - 40
+
 Global Const $REG_INSTALL_KEY    = "HKEY_LOCAL_MACHINE\SOFTWARE\AutoIt TryCatch"
 Global Const $REG_UNINSTALL_KEY  = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\AutoItTryCatch"
 Global Const $REG_AUTOIT_INCLUDE = "HKEY_CURRENT_USER\Software\AutoIt v3\AutoIt"
@@ -43,6 +57,7 @@ Global Const $REG_SCITE_HOME_KEY = "HKEY_CURRENT_USER\Environment"
 Global $g_sInstallType    = ""
 Global $g_sIncludePath    = ""
 Global $g_sLintPath       = ""
+Global $g_sChmPath        = ""
 Global $g_sSciTEUserProps = ""
 
 ; ===============================================================================================================================
@@ -58,6 +73,16 @@ Func _Main()
             "It may have already been uninstalled.")
         Exit
     EndIf
+
+    ; If running from the install folder, copy to temp and relaunch from there
+    ; so we can delete the install folder at the end of uninstallation
+    If StringInStr(StringLower(@ScriptFullPath), StringLower($g_sChmPath)) Then
+        Local $sTempExe = @TempDir & "\TryCatchUninstaller.exe"
+        FileCopy(@ScriptFullPath, $sTempExe, $FC_OVERWRITE)
+        ShellExecute($sTempExe)
+        Exit
+    EndIf
+
     __RunWizard()
 EndFunc
 
@@ -72,12 +97,14 @@ Func __ReadInstallRecord()
     $g_sLintPath = RegRead($REG_INSTALL_KEY, "LintPath")
     If @error Then Return False
 
+    $g_sChmPath = RegRead($REG_INSTALL_KEY, "ChmPath")
+    If @error Then Return False
+
     If $g_sInstallType = "Full" Then
         $g_sIncludePath = RegRead($REG_INSTALL_KEY, "IncludePath")
         If @error Then Return False
     EndIf
 
-    ; SciTE user home for SciTEUser.properties
     Local $sSciTEUserHome = RegRead($REG_SCITE_HOME_KEY, "SCITE_USERHOME")
     If @error Or Not FileExists($sSciTEUserHome) Then
         $sSciTEUserHome = @LocalAppDataDir & "\AutoIt v3\SciTE"
@@ -94,68 +121,88 @@ EndFunc
 Func __RunWizard()
     Local $hWin = GUICreate($UNINSTALLER_TITLE, $WIN_WIDTH, $WIN_HEIGHT, -1, -1, _
         BitOR($WS_CAPTION, $WS_SYSMENU, $WS_MINIMIZEBOX))
+    GUISetBkColor(0xF0F0F0)
 
     ; --- Header bar ---
-    Local $idHeader = GUICtrlCreateLabel("", 0, 0, $WIN_WIDTH, 70)
+    Local $idHeader = GUICtrlCreateLabel("", 0, 0, $WIN_WIDTH, $HEADER_H)
     GUICtrlSetBkColor($idHeader, 0xFFFFFF)
-    Local $idHeaderTitle = GUICtrlCreateLabel("AutoIt TryCatch Solution", 15, 12, 400, 20)
-    GUICtrlSetFont($idHeaderTitle, 11, 800)
+    Local $idHeaderTitle = GUICtrlCreateLabel("AutoIt TryCatch Solution", 15, 12, $WIN_WIDTH - 30, 26)
+    GUICtrlSetFont($idHeaderTitle, 14, $FW_BOLD, $GUI_FONTNORMAL, $FONT_FACE)
     GUICtrlSetBkColor($idHeaderTitle, 0xFFFFFF)
-    Local $idHeaderSub = GUICtrlCreateLabel("", 15, 36, 460, 30)
+    Local $idHeaderSub = GUICtrlCreateLabel("", 15, 38, $WIN_WIDTH - 30, 22)
+    GUICtrlSetFont($idHeaderSub, $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetColor($idHeaderSub, 0x444444)
     GUICtrlSetBkColor($idHeaderSub, 0xFFFFFF)
-    Local $idSeparator = GUICtrlCreateLabel("", 0, 70, $WIN_WIDTH, 2)
-    GUICtrlSetBkColor($idSeparator, 0xCCCCCC)
+    Local $idHeaderSep = GUICtrlCreateLabel("", 0, $HEADER_H, $WIN_WIDTH, 1)
+    GUICtrlSetBkColor($idHeaderSep, 0xCCCCCC)
 
-    ; --- Footer buttons ---
-    Local $idBtnNext   = GUICtrlCreateButton("Next >",  390, 360, 85, 25)
-    Local $idBtnBack   = GUICtrlCreateButton("< Back",  300, 360, 85, 25)
-    Local $idBtnCancel = GUICtrlCreateButton("Cancel",  205, 360, 85, 25)
-    Local $idFooterSep = GUICtrlCreateLabel("", 0, 350, $WIN_WIDTH, 2)
-    GUICtrlSetBkColor($idFooterSep, 0xCCCCCC)
+    ; --- Footer separator ---
+    Local $idFooterSep = GUICtrlCreateLabel("", 0, $FOOTER_SEP_Y, $WIN_WIDTH, 1)
+    GUICtrlSetBkColor($idFooterSep, 0xD0D0D0)
+
+    ; --- Footer buttons (centered: Cancel | Back | Next) ---
+    Local $iTotalBtnW  = (3 * $BTN_W) + (2 * $BTN_GAP)
+    Local $iBtnStartX  = ($WIN_WIDTH - $iTotalBtnW) / 2
+    Local $idBtnCancel = GUICtrlCreateButton("Cancel",  $iBtnStartX,                           $BTN_Y, $BTN_W, $BTN_H)
+    Local $idBtnBack   = GUICtrlCreateButton("< Back",  $iBtnStartX + $BTN_W + $BTN_GAP,       $BTN_Y, $BTN_W, $BTN_H)
+    Local $idBtnNext   = GUICtrlCreateButton("Next >",  $iBtnStartX + 2 * ($BTN_W + $BTN_GAP), $BTN_Y, $BTN_W, $BTN_H)
+    GUICtrlSetFont($idBtnCancel, $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetFont($idBtnBack,   $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetFont($idBtnNext,   $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
 
     ; ===================================================================
-    ; Page 1 - Welcome
+    ; Page 1 - Welcome / Confirm
     ; ===================================================================
     Local $aPage1[2]
     Local $sInstallSummary = "Installation type: " & $g_sInstallType & @CRLF
     If $g_sInstallType = "Full" Then
-        $sInstallSummary &= "Core library path: " & $g_sIncludePath & @CRLF
+        $sInstallSummary &= "Core library path:  " & $g_sIncludePath & @CRLF
     EndIf
-    $sInstallSummary &= "Lint tool path:    " & $g_sLintPath
-
+    $sInstallSummary &= "Lint tool path:     " & $g_sLintPath & @CRLF
+    $sInstallSummary &= "Documentation path: " & $g_sChmPath
     $aPage1[0] = GUICtrlCreateLabel( _
         "This wizard will remove the AutoIt TryCatch Solution from your computer." & @CRLF & @CRLF & _
         "It is recommended that you close SciTE before continuing." & @CRLF & @CRLF & _
         "Current installation:" & @CRLF & $sInstallSummary & @CRLF & @CRLF & _
         "Click Next to continue or Cancel to exit.", _
-        15, 90, 465, 230)
-    $aPage1[1] = GUICtrlCreateLabel("", 0, 0, 0, 0) ; placeholder to keep array size consistent
+        15, $CONTENT_TOP, $CONTENT_W, $FOOTER_SEP_Y - $CONTENT_TOP - 10)
+    GUICtrlSetFont($aPage1[0], $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetBkColor($aPage1[0], $GUI_BKCOLOR_TRANSPARENT)
+    $aPage1[1] = GUICtrlCreateLabel("", 0, 0, 0, 0) ; placeholder
 
     ; ===================================================================
     ; Page 2 - Ready to Uninstall
     ; ===================================================================
-    Local $aPage2[1]
-    Local $sReadyText = "The following actions will be performed:" & @CRLF & @CRLF
+    Local $aPage2[2]
+    $aPage2[0] = GUICtrlCreateLabel("The following actions will be performed:", 10, $CONTENT_TOP, $WIN_WIDTH - 20, 22)
+    GUICtrlSetFont($aPage2[0], $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetBkColor($aPage2[0], $GUI_BKCOLOR_TRANSPARENT)
+    Local $sReadyText = ""
     If $g_sInstallType = "Full" Then
-        $sReadyText &= "  - Delete TryCatch.au3 from:   " & $g_sIncludePath & @CRLF
-        $sReadyText &= "  - Delete Exception.au3 from:  " & $g_sIncludePath & @CRLF
+        $sReadyText &= "  - Delete TryCatch.au3 from:          " & $g_sIncludePath & @CRLF
+        $sReadyText &= "  - Delete Exception.au3 from:         " & $g_sIncludePath & @CRLF
         $sReadyText &= "  - Remove include path from AutoIt registry entry" & @CRLF
         $sReadyText &= "  - Remove Vendor folder if empty" & @CRLF
     EndIf
-    $sReadyText &= "  - Delete TryCatchLint.au3 from:      " & $g_sLintPath & @CRLF
-    $sReadyText &= "  - Delete TryCatchLintSciTE.au3 from: " & $g_sLintPath & @CRLF
-    $sReadyText &= "  - Delete TryCatch.chm from:          " & $g_sLintPath & @CRLF
+    $sReadyText &= "  - Delete TryCatchLint.au3 from:       " & $g_sLintPath & @CRLF
+    $sReadyText &= "  - Delete TryCatchLintSciTE.au3 from:  " & $g_sLintPath & @CRLF
+    $sReadyText &= "  - Delete TryCatch.chm from:           " & $g_sChmPath & @CRLF
     $sReadyText &= "  - Remove TryCatch Lint from SciTEUser.properties" & @CRLF
     $sReadyText &= "  - Remove lint folder if empty" & @CRLF
+    $sReadyText &= "  - Remove documentation folder if empty" & @CRLF
     $sReadyText &= "  - Remove from Add/Remove Programs"
-    $aPage2[0] = GUICtrlCreateLabel($sReadyText, 15, 90, 465, 230)
+    $aPage2[1] = GUICtrlCreateLabel($sReadyText, 10, $CONTENT_TOP + 28, $WIN_WIDTH - 20, $FOOTER_SEP_Y - $CONTENT_TOP - 38)
+    GUICtrlSetFont($aPage2[1], 10, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetBkColor($aPage2[1], $GUI_BKCOLOR_TRANSPARENT)
 
     ; ===================================================================
     ; Page 3 - Progress
     ; ===================================================================
     Local $aPage3[2]
-    $aPage3[0] = GUICtrlCreateLabel("", 15, 90, 465, 20)
-    $aPage3[1] = GUICtrlCreateProgress(15, 120, 465, 22)
+    $aPage3[0] = GUICtrlCreateLabel("", 15, $CONTENT_TOP, $CONTENT_W, 24)
+    GUICtrlSetFont($aPage3[0], $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetBkColor($aPage3[0], $GUI_BKCOLOR_TRANSPARENT)
+    $aPage3[1] = GUICtrlCreateProgress(15, $CONTENT_TOP + 32, $CONTENT_W, 24)
 
     ; ===================================================================
     ; Page 4 - Finish
@@ -164,7 +211,9 @@ Func __RunWizard()
     $aPage4[0] = GUICtrlCreateLabel( _
         "AutoIt TryCatch Solution has been successfully uninstalled." & @CRLF & @CRLF & _
         "Please restart SciTE to remove the TryCatch Lint entry from the Tools menu.", _
-        15, 90, 465, 180)
+        15, $CONTENT_TOP, $CONTENT_W, $FOOTER_SEP_Y - $CONTENT_TOP - 10)
+    GUICtrlSetFont($aPage4[0], $FONT_SIZE, $FW_NORMAL, $GUI_FONTNORMAL, $FONT_FACE)
+    GUICtrlSetBkColor($aPage4[0], $GUI_BKCOLOR_TRANSPARENT)
 
     ; --- Hide all pages initially ---
     __HidePage($aPage1)
@@ -288,9 +337,8 @@ EndFunc
 
 Func __RunUninstall($idStatusLabel, $idProgress)
     Local $iStep  = 0
-    Local $iSteps = ($g_sInstallType = "Full") ? 8 : 5
+    Local $iSteps = ($g_sInstallType = "Full") ? 9 : 6
 
-    ; --- Remove core library files (full install only) ---
     If $g_sInstallType = "Full" Then
         __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing TryCatch.au3...")
         FileDelete($g_sIncludePath & "\TryCatch.au3")
@@ -309,7 +357,6 @@ Func __RunUninstall($idStatusLabel, $idProgress)
         $iStep += 1
     EndIf
 
-    ; --- Remove lint files ---
     __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing TryCatchLint.au3...")
     FileDelete($g_sLintPath & "\TryCatchLint.au3")
     $iStep += 1
@@ -318,21 +365,20 @@ Func __RunUninstall($idStatusLabel, $idProgress)
     FileDelete($g_sLintPath & "\TryCatchLintSciTE.au3")
     $iStep += 1
 
-    __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing TryCatch.chm...")
-    FileDelete($g_sLintPath & "\TryCatch.chm")
-    $iStep += 1
-
-    ; --- Remove SciTE registration ---
     __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing TryCatch Lint from SciTEUser.properties...")
     __RemoveSciTERegistration()
     $iStep += 1
 
-    ; --- Remove lint folder if empty ---
     __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing lint folder if empty...")
     __RemoveFolderIfEmpty($g_sLintPath)
     $iStep += 1
 
-    ; --- Remove registry entries ---
+    __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing documentation folder...")
+    FileDelete($g_sChmPath & "\TryCatch.chm")
+    FileDelete($g_sChmPath & "\TryCatchUninstaller.exe")
+    __RemoveFolderIfEmpty($g_sChmPath)
+    $iStep += 1
+
     __ProgressStep($idStatusLabel, $idProgress, $iStep, $iSteps, "Removing registry entries...")
     RegDelete($REG_INSTALL_KEY)
     RegDelete($REG_UNINSTALL_KEY)
@@ -349,14 +395,10 @@ EndFunc
 ; Helpers
 ; ===============================================================================================================================
 
-; Removes our include path from the semicolon-delimited AutoIt Include registry value.
-; Removes the registry value entirely only if it becomes empty after removing our path.
-; Leaves any other vendor paths in the value untouched.
 Func __RemoveIncludeRegistry()
     Local $sExisting = RegRead($REG_AUTOIT_INCLUDE, "Include")
     If @error Then Return
 
-    ; Split on semicolon, remove our path, rejoin remaining entries
     Local $aPaths = StringSplit($sExisting, ";", 1)
     Local $sNew = ""
     For $i = 1 To $aPaths[0]
@@ -373,26 +415,23 @@ Func __RemoveIncludeRegistry()
     EndIf
 EndFunc
 
-; Removes the TryCatch Lint block from SciTEUser.properties
 Func __RemoveSciTERegistration()
     If Not FileExists($g_sSciTEUserProps) Then Return
 
     Local $sContent = FileRead($g_sSciTEUserProps)
 
-    ; Find the registered slot number
     Local $aMatch = StringRegExp($sContent, 'command\.name\.(\d+)\.\$\(au3\)=TryCatch Lint', 1)
     If @error Then Return
 
     Local $iSlot = $aMatch[0]
     $sContent = StringRegExpReplace($sContent, '(?m)^#\s*' & $iSlot & '\s+TryCatch Lint\s*$\R?', "")
-	$sContent = StringRegExpReplace($sContent, '(?m)^command\.[\w.]*' & $iSlot & '\.[^\r\n]*$\R?', "")
+    $sContent = StringRegExpReplace($sContent, '(?m)^command\.[\w.]*' & $iSlot & '\.[^\r\n]*$\R?', "")
 
     Local $hFile = FileOpen($g_sSciTEUserProps, 2)
     FileWrite($hFile, $sContent)
     FileClose($hFile)
 EndFunc
 
-; Deletes $sFolder if it contains no files or subfolders
 Func __RemoveFolderIfEmpty($sFolder)
     If Not FileExists($sFolder) Then Return
     Local $aFiles = _FileListToArray($sFolder)

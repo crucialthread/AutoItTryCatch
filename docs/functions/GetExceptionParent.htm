@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_GetExceptionParent - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_GetExceptionParent</h1>
+
+<p>Returns the parent type name of a named exception type.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_GetExceptionParent ( $sName )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The registered exception type name.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>The normalized (lowercased) parent type key. Returns the normalized key of <code>"TryCatchException"</code> for top-level types.</td></tr>
+<tr><td>Failure</td><td><code>Default</code> if the name is not registered.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    Parent names are stored internally in normalized (lowercased) form. The value
+    returned is the normalized key, not the original cased name used during registration.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="RegisterException.htm">_RegisterException</a>,
+    <a href="ExtendsException.htm">_ExtendsException</a>,
+    <a href="IsExceptionOf.htm">_IsExceptionOf</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+_RegisterException("IOException",   "An I/O operation failed")
+_RegisterException("FileException", "A file operation failed", "IOException")
+
+ConsoleWrite(_GetExceptionParent("FileException") & @CRLF)
+; Output: ioexception  (normalized/lowercased)
+</pre>
+
+</body>
+</html>

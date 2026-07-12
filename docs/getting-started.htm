@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Getting Started - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>Getting Started</h1>
+
+<h2>Installation</h2>
+
+<p>
+    Download the installer from the
+    <a href="https://github.com/crucialthread/AutoItTryCatch/releases">releases page</a>
+    and run it. The installer copies <code>TryCatch.au3</code> and <code>Exception.au3</code>
+    to your AutoIt include directory. Only one include is needed in your scripts - 
+    <code>TryCatch.au3</code> includes <code>Exception.au3</code> automatically:
+</p>
+
+<div class="signature">#include &lt;TryCatch.au3&gt;</div>
+
+<p>
+    For Git projects, see the
+    <a href="https://github.com/crucialthread/AutoItTryCatch">README</a>
+    for instructions on using the solution as a Git submodule.
+</p>
+
+<hr>
+
+<h2>How This Solution Works</h2>
+
+<p>
+    Unlike traditional try/catch in languages like C# or Java, this solution does
+    <b>not</b> halt execution and jump to a catch handler when an error occurs.
+    The script always continues executing line by line.
+</p>
+<p>
+    Instead, the solution works through <b>compatible try/catch functions</b> - functions
+    that check whether a prior exception is already on the stack at the start of their
+    execution, and if so, skip their work and return immediately. When all functions in
+    a try block are compatible (or decorated with <code>_TryWith(_NoErr() ? ... : Null)</code>),
+    the net effect is identical to a traditional try/catch: after any exception, subsequent
+    functions are silently skipped until <code>_Catch()</code> handles the exception.
+</p>
+
+<div class="note">
+    <b>Key point:</b> only compatible try/catch functions and <code>_TryWith(_NoErr() ? ... : Null)</code>
+    decorated calls skip execution on a prior exception. Regular AutoIt functions and plain
+    <code>_TryWith(func())</code> calls always execute regardless of prior exceptions on the stack.
+</div>
+
+<hr>
+
+<h2>Writing a Compatible Try/Catch Function</h2>
+
+<p>
+    A compatible try/catch function is a regular AutoIt function that uses
+    <code>_OnErrorResume()</code> and <code>_ThrowException()</code> to participate
+    fully in the exception model:
+</p>
+
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadConfig($sPath)
+    ; Skip if a prior exception is already on the stack
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+
+    ; Throw a named exception on failure
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Config not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+
+    Return FileRead($sPath)
+EndFunc
+</pre>
+
+<p>
+    The pattern for throwing is always:
+    <code>Return SetError(_ThrowException("ExceptionName", "message", _FuncName), 0, False)</code>
+</p>
+
+<hr>
+
+<h2>Your First Try/Catch Block</h2>
+
+<p>
+    The most common and recommended pattern combines compatible try/catch functions
+    with <code>_TryWith(_NoErr() ? ... : Null)</code> for non-compatible functions:
+</p>
+
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("MyException",      "Something went wrong")
+_RegisterException("AnotherException", "Something else went wrong")
+
+_Try()
+
+    ; --- Compatible try/catch function (preferred) ---
+    ; Skips automatically if any previous function in this scope already threw.
+    _MyCompatibleFunc()
+
+    ; --- Non-compatible function wrapped with _TryWith() + _NoErr() ---
+    ; Skips if any prior exception exists on the stack.
+    ; Captures @error as a generic exception if the function fails.
+    _TryWith(_NoErr() ? _AnyNonCompatibleFunc($param) : Null)
+
+    ; --- Plain _TryWith() without _NoErr() ---
+    ; Always runs regardless of prior exceptions on the stack.
+    ; Use when you always want the call to run and capture its own @error independently.
+    _TryWith(_AnotherNonCompatibleFunc($param))
+
+Local $e
+If _Catch($e, _AsExceptionType("MyException")) Then
+    ConsoleWrite("MyException: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e, _AsExceptionType("AnotherException")) Then
+    ConsoleWrite("AnotherException: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e) Then
+    ; Catch-all - catches any exception including generic ones from _TryWith()
+    ConsoleWrite("Unexpected error: " & $e.sException & " - " & $e.sMessage & @CRLF)
+EndIf
+
+_EndTry()
+</pre>
+
+<hr>
+
+<h2>The Exception Object</h2>
+
+<p>When <code>_Catch()</code> returns <code>True</code>, the variable receives the caught exception with three properties:</p>
+
+<table>
+<tr><td>$e.sException</td><td>The exception type name (e.g. <code>"FileException"</code>).</td></tr>
+<tr><td>$e.sMessage</td><td>The exception message.</td></tr>
+<tr><td>$e.sSource</td><td>The source of the throw - the function name for compatible function entries, or <code>$UNDEFINED_SOURCE</code> for <code>_TryWith()</code> entries.</td></tr>
+</table>
+
+<hr>
+
+<h2>Wrapping Non-Compatible Functions</h2>
+
+<p>
+    When you need to use AutoIt built-in functions or third-party UDFs that signal
+    errors via <code>@error</code>/<code>SetError()</code>, use <code>_TryWith()</code>
+    to capture their errors as exceptions.
+</p>
+<p>
+    <code>_TryWith()</code> captures <code>@error</code> automatically at the call site.
+    With the <code>_NoErr()</code> guard, it also skips the call if a prior exception
+    is already on the stack - making it behave like a compatible function:
+</p>
+
+<pre>
+_Try()
+    ; _TryWith with _NoErr() - skips if prior exception exists, captures @error as exception
+    Local $sContent = _TryWith(_NoErr() ? FileRead("config.ini") : Null)
+    _TryWith(_NoErr() ? ConsoleWrite("Read " & StringLen($sContent) & " bytes" & @CRLF) : Null)
+
+Local $e
+If _Catch($e) Then
+    ConsoleWrite("Could not read config file" & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+<hr>
+
+<h2>Early Return from a Try Block</h2>
+
+<p>
+    If you need to <code>Return</code> from inside a try block, always call
+    <code>_EndTry()</code> first. Two supported patterns:
+</p>
+
+<pre>
+; Pattern 1 - Return _EndTry() on one line
+Func _MyFunc()
+    _Try()
+        If SomeCondition() Then Return _EndTry()
+    Local $e
+    If _Catch($e) Then ; ...
+    EndIf
+    _EndTry()
+EndFunc
+
+; Pattern 2 - _EndTry() then Return on separate lines
+Func _MyFunc($vValue)
+    _Try()
+        If SomeCondition() Then
+            _EndTry()
+            Return $vValue
+        EndIf
+    Local $e
+    If _Catch($e) Then ; ...
+    EndIf
+    _EndTry()
+EndFunc
+</pre>
+
+<div class="warning">
+    <b>Warning:</b> never use a bare <code>Return</code> from inside a try block
+    without calling <code>_EndTry()</code> first. Doing so corrupts the internal
+    depth counter and causes unpredictable behavior. The <a href="lint.htm">TryCatchLint</a>
+    tool detects this mistake automatically.
+</div>
+
+</body>
+</html>

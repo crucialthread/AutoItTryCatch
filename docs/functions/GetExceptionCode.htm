@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_GetExceptionCode - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_GetExceptionCode</h1>
+
+<p>Returns the numeric code associated with a named exception type.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_GetExceptionCode ( $sName )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The registered exception type name.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>The numeric code for this exception type.</td></tr>
+<tr><td>Failure</td><td>0 and @error set if the name is not registered.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    The numeric code is assigned at registration time - either the value explicitly
+    provided to <code>_RegisterException()</code>, or an auto-incremented value.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="RegisterException.htm">_RegisterException</a>,
+    <a href="AsErrCode.htm">_AsErrCode</a>
+</p>
+
+</body>
+</html>

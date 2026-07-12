@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Concepts - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>Concepts</h1>
+
+<h2>How the Solution Works</h2>
+
+<p>
+    Unlike traditional try/catch in languages like C# or Java, this solution does
+    <b>not</b> halt script execution and jump to a catch handler when an exception occurs.
+    The script always continues executing line by line.
+</p>
+<p>
+    The solution works through an exception stack. When an exception is thrown, an entry
+    is added to the current try scope's stack. Functions that are aware of this stack
+    (compatible try/catch functions) check for entries at the start of their execution
+    and skip their work if any exception is already present. This creates the effect of
+    a traditional try/catch: after an exception, subsequent compatible functions are
+    silently skipped until the exception is handled by <code>_Catch()</code>.
+</p>
+
+<div class="warning">
+    <b>Important limitation:</b> only <b>compatible try/catch functions</b> and
+    functions decorated with <code>_TryWith(_NoErr() ? ... : Null)</code> skip
+    execution when exceptions are on the stack. Regular AutoIt functions and plain
+    <code>_TryWith(func())</code> calls always execute regardless of the stack state.
+    This is a fundamental characteristic of the solution that must be understood when
+    designing code that uses it.
+</div>
+
+<hr>
+
+<h2>Compatible Try/Catch Functions</h2>
+
+<p>
+    A compatible try/catch function is the core building block of the solution. It is
+    a regular AutoIt function written with two characteristics:
+</p>
+
+<p>1. It checks <code>_OnErrorResume()</code> at the start and returns immediately if
+any exception is already on the stack:</p>
+<pre>
+If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+</pre>
+
+<p>2. It throws named exceptions on failure using the specific pattern:</p>
+<pre>
+Return SetError(_ThrowException("ExceptionName", "message", _FunctionName), 0, False)
+</pre>
+
+<p>A complete compatible function looks like this:</p>
+<pre>
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Config not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+
+    Return FileRead($sPath)
+EndFunc
+</pre>
+
+<p>
+    When called from inside a <code>_Try()</code> block, compatible functions skip
+    automatically if a prior exception is on the stack. When the first one in a chain
+    throws, all subsequent compatible functions in the same scope are skipped, and
+    <code>_Catch()</code> handles the exception.
+</p>
+<p>
+    A compatible function is not limited in what it does - it can contain any number
+    of instructions, perform multiple operations, and throw different exception types
+    depending on what fails at each step. The only requirement is the
+    <code>_OnErrorResume()</code> guard at the top and using
+    <code>Return SetError(_ThrowException(...), 0, False)</code> to signal failures.
+    The example below shows a single compatible function that performs several
+    validation steps and may throw different exceptions:
+</p>
+<pre>
+_RegisterException("FileException",  "A file operation failed")
+_RegisterException("ParseException", "A parse operation failed")
+
+Func _LoadAndProcessConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Config not found: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    Local $sContent = FileRead($sPath)
+    If @error Then
+        Return SetError(_ThrowException("FileException", "Could not read: " & $sPath, _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    If StringLen($sContent) = 0 Then
+        Return SetError(_ThrowException("ParseException", "Config file is empty", _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    If Not StringInStr($sContent, "[Settings]") Then
+        Return SetError(_ThrowException("ParseException", "Missing [Settings] section", _LoadAndProcessConfig), 0, False)
+    EndIf
+
+    Return $sContent
+EndFunc
+</pre>
+
+<hr>
+
+<h2>Integrating Non-Compatible Functions</h2>
+
+<p>
+    Many AutoIt built-in functions and third-party UDFs use <code>@error</code>/
+    <code>SetError()</code> to signal errors rather than participating in the exception
+    stack. Two tools integrate them into the solution:
+</p>
+
+<h3>_TryWith()</h3>
+<p>
+    Wraps a function call and converts a non-zero <code>@error</code> into a generic
+    exception entry on the stack. <code>@error</code> is captured automatically at the
+    call site - no explicit passing needed:
+</p>
+<pre>
+_TryWith(FileRead("config.ini"))
+</pre>
+<p>
+    <b>Plain <code>_TryWith()</code> always runs</b> regardless of prior exceptions on
+    the stack. It captures the function's own <code>@error</code> independently and
+    throws a generic exception (of type <code>"TryCatchException"</code>) if the call failed.
+</p>
+
+<h3>_TryWith() + _NoErr()</h3>
+<p>
+    Combining <code>_TryWith()</code> with <code>_NoErr()</code> makes a non-compatible
+    function behave like a compatible one - it skips if any prior exception is on the stack:
+</p>
+<pre>
+_TryWith(_NoErr() ? FileRead("config.ini") : Null)
+</pre>
+<p>
+    This is the <b>preferred pattern</b> for wrapping non-compatible functions because it
+    mirrors the behavior of compatible try/catch functions. Use plain <code>_TryWith()</code>
+    only when you specifically want the call to always run regardless of prior exceptions.
+</p>
+
+<hr>
+
+<h2>The Exception Object</h2>
+
+<p>
+    When <code>_Catch()</code> returns <code>True</code>, the output variable is
+    populated with the caught exception entry, exposing three properties:
+</p>
+
+<table>
+<tr><td>$e.sException</td><td>The exception type name (e.g. <code>"FileException"</code>). Generic exceptions from <code>_TryWith()</code> use <code>"TryCatchException"</code>.</td></tr>
+<tr><td>$e.sMessage</td><td>The exception message.</td></tr>
+<tr><td>$e.sSource</td><td>The source of the throw - the function name for compatible function entries, or <code>$UNDEFINED_SOURCE</code> for <code>_TryWith()</code> entries.</td></tr>
+</table>
+
+<hr>
+
+<h2>Single Match Per Scope</h2>
+
+<p>
+    Once a <code>_Catch()</code> call returns <code>True</code> in a given try scope,
+    all subsequent <code>_Catch()</code> calls in the same scope return <code>False</code>.
+    This ensures only one handler runs per scope and makes <code>If</code>/<code>ElseIf</code>
+    chains work as expected:
+</p>
+<pre>
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ; this branch runs
+ElseIf _Catch($e, _AsExceptionType("NetworkException")) Then
+    ; this never runs even if a NetworkException also exists on the stack
+EndIf
+</pre>
+
+<hr>
+
+<h2>Latest Entry Wins</h2>
+
+<p>
+    When multiple exceptions exist on the scope's stack, <code>_Catch()</code> matches
+    against the <b>latest</b> entry - the one added most recently. Earlier entries
+    remain on the stack but are not returned first.
+</p>
+<p>
+    When using a multi-type list via <code>_AsExceptionType()</code>, <b>list order
+    beats recency</b> - the first type in the list is checked first, regardless of
+    which exception was thrown most recently.
+</p>
+
+<hr>
+
+<h2>Exception Types and the Registry</h2>
+
+<p>
+    Every exception has a name - a string identifier like <code>"FileException"</code>.
+    Register exception types with <code>_RegisterException()</code> before using them:
+</p>
+<pre>
+_RegisterException("FileException", "A file operation failed")
+</pre>
+<p>
+    Registration associates the name with a human-readable default message, an optional
+    parent type, and a numeric code. If the message is omitted or empty, it defaults
+    to the exception name itself. Registering an already-registered name overwrites
+    the existing entry.
+</p>
+<p>
+    If you throw an exception name that was never registered, <code>_ThrowException()</code>
+    auto-registers it. Use with care - unregistered names are often typos, and the
+    <a href="lint.htm">TryCatchLint</a> tool flags them as warnings.
+</p>
+
+<hr>
+
+<h2>Exception Hierarchy and Inheritance</h2>
+
+<p>
+    Exception types form a tree rooted at <code>"TryCatchException"</code>, the root
+    exception type. Every type registered without an explicit parent automatically
+    extends <code>"TryCatchException"</code>. You can build deeper hierarchies:
+</p>
+<pre>
+_RegisterException("IOException",      "An I/O operation failed")
+_RegisterException("FileException",    "A file operation failed",    "IOException")
+_RegisterException("NetworkException", "A network operation failed", "IOException")
+</pre>
+<p>
+    Catching a parent type also catches all descendants. So
+    <code>_Catch($e, _AsExceptionType("IOException"))</code> catches both
+    <code>"FileException"</code> and <code>"NetworkException"</code>:
+</p>
+<pre>
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ; handle file errors specifically
+ElseIf _Catch($e, _AsExceptionType("IOException")) Then
+    ; handle any other IOException descendant
+EndIf
+</pre>
+
+<hr>
+
+<h2>Using _AsExceptionType()</h2>
+
+<p>
+    <code>_AsExceptionType()</code> is the recommended way to pass exception types to
+    <code>_Catch()</code>, even for a single type, as it improves readability and
+    consistency. It accepts a single name, a comma-separated list, or an already-built array:
+</p>
+<pre>
+; Single type - _AsExceptionType recommended even here
+_Catch($e, _AsExceptionType("FileException"))
+
+; Multiple types in one handler
+_Catch($e, _AsExceptionType("FileException,NetworkException"))
+</pre>
+<p>
+    A bare string is also accepted directly by <code>_Catch()</code>, but
+    <code>_AsExceptionType()</code> is preferred for clarity.
+</p>
+
+<hr>
+
+<h2>Nested Try Blocks</h2>
+
+<p>
+    Try blocks can be nested. Each scope is independent - the inner scope sees only
+    its own exception entries. A <code>_Catch()</code> in the inner scope handles
+    inner exceptions; unhandled entries propagate to the outer scope:
+</p>
+<pre>
+_Try()                                                    ; outer scope
+    _MyCompatibleFunc()
+
+    _Try()                                                ; inner scope
+        _TryWith(_NoErr() ? _AnotherFunc() : Null)
+    Local $eInner
+    If _Catch($eInner) Then                               ; catches inner scope's latest entry
+        ConsoleWrite("Inner caught: " & $eInner.sException & @CRLF)
+    EndIf
+    _EndTry()                                             ; inner scope closed
+
+Local $eOuter
+If _Catch($eOuter, _AsExceptionType("FileException")) Then ; catches from outer scope
+    ConsoleWrite("Outer caught: " & $eOuter.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+<hr>
+
+<h2>Force Reset</h2>
+
+<p>
+    In rare recovery scenarios - such as test teardown after a deliberately unclosed
+    <code>_Try()</code> - pass <code>$FORCE_RESET</code> to <code>_EndTry()</code>
+    to reset the entire try/catch state regardless of nesting depth:
+</p>
+<pre>
+_EndTry($FORCE_RESET)
+</pre>
+<div class="warning">
+    <b>Warning:</b> <code>$FORCE_RESET</code> is for edge cases only. Do not use it
+    as a substitute for properly balanced <code>_Try()</code>/<code>_EndTry()</code>
+    calls in normal code.
+</div>
+
+<hr>
+
+<h2>Stack Trace</h2>
+
+<p>
+    <code>_StackTrace()</code> returns the current scope's exception entries as an array,
+    or passes them through a handler function. The most common usage is to pass
+    <code>_FormatStackTrace</code> as the handler to get a formatted string directly:
+</p>
+<pre>
+_Try()
+    _MyCompatibleFunc()
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite(_StackTrace(_FormatStackTrace) & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

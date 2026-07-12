@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Constants Reference - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>Constants Reference</h1>
+
+<h2>TryCatch.au3 Constants</h2>
+
+<table>
+<tr>
+    <td>$FORCE_RESET</td>
+    <td>Pass to <a href="functions/EndTry.htm">_EndTry()</a> to reset the entire try/catch
+    state regardless of nesting depth. For crash recovery and test teardown scenarios only -
+    not for use in normal code. See <a href="concepts.htm">Concepts - Force Reset</a>.</td>
+</tr>
+<tr>
+    <td>$UNDEFINED_SOURCE</td>
+    <td>The source value used in exception entries added by <code>_TryWith()</code>, where
+    no specific function name is available. Returned in <code>$e.sSource</code> for such entries.</td>
+</tr>
+<tr>
+    <td>$DEFINED_ENTRY</td>
+    <td>Stack entry type constant identifying entries added by <code>_ThrowException()</code>
+    (named exceptions from compatible try/catch functions).</td>
+</tr>
+<tr>
+    <td>$UNDEFINED_ENTRY</td>
+    <td>Stack entry type constant identifying entries added by <code>_TryWith()</code>
+    (generic exceptions from non-compatible function calls).</td>
+</tr>
+<tr>
+    <td>$ROOT_TRYBLOCK</td>
+    <td>Identifies the root-level try scope in stack trace inspection.</td>
+</tr>
+</table>
+
+<h2>Exception.au3 Constants</h2>
+
+<table>
+<tr>
+    <td>$EXCEPTION_ROOT</td>
+    <td>The string name of the root exception type: <code>"TryCatchException"</code>.
+    Every exception type registered without an explicit parent automatically extends
+    <code>"TryCatchException"</code>. This name is reserved and cannot be used as a
+    name in <a href="functions/RegisterException.htm">_RegisterException()</a>. It can
+    be used as the <code>$sParent</code> argument to explicitly root a type at the top
+    of the hierarchy, or passed to <code>_Catch()</code> as a catch-all (equivalent to
+    omitting the type argument entirely).</td>
+</tr>
+</table>
+
+</body>
+</html>

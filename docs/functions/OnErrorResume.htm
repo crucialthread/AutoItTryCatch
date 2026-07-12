@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_OnErrorResume - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_OnErrorResume</h1>
+
+<p>Returns True if exceptions exist on the current scope's stack. Used as the skip guard in compatible try/catch functions.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_OnErrorResume ( )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>None.</td><td>This function takes no parameters.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>True</td><td>Exceptions exist on the current scope's stack and a try scope is active. The compatible function should skip its work and return immediately.</td></tr>
+<tr><td>False</td><td>No exceptions on the stack, or no try scope is active. The function should proceed normally.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    <code>_OnErrorResume()</code> and <code>_ThrowException()</code> work together
+    to build <b>compatible try/catch functions</b> - functions that participate fully
+    in the exception model. <code>_OnErrorResume()</code> is always the first
+    statement in a compatible function:
+</p>
+<pre>
+Func _MyCompatibleFunc()
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    ; ... rest of function only executes if no exceptions on the stack
+EndFunc
+</pre>
+<p>
+    When a try scope is active and exceptions exist on its stack, all compatible
+    functions that check <code>_OnErrorResume()</code> skip their work and return
+    immediately. This is what creates the "skip remaining functions after a failure"
+    behavior that makes the solution work like a traditional try/catch.
+</p>
+<p>
+    A compatible try/catch function can contain any number of instructions and throw
+    any number of different exception types depending on what fails. There is no
+    restriction on its complexity - it is a regular AutoIt function that happens to
+    start with the <code>_OnErrorResume()</code> guard and uses
+    <code>_ThrowException()</code> to signal failures.
+</p>
+<p>
+    Note that <code>_OnErrorResume()</code> checks for <b>exceptions on the stack</b>,
+    not AutoIt's <code>@error</code>. It is independent of AutoIt's native error system.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="ThrowException.htm">_ThrowException</a>,
+    <a href="NoErr.htm">_NoErr</a>,
+    <a href="../concepts.htm">Concepts - Compatible Try/Catch Functions</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException",    "A file operation failed")
+_RegisterException("NetworkException", "A network operation failed")
+
+Func _ReadConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+Func _SendConfig($sContent)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    ; ... _ReadConfig threw, so this function is skipped entirely
+    If $sContent = "" Then
+        Return SetError(_ThrowException("NetworkException", "Nothing to send", _SendConfig), 0, False)
+    EndIf
+    ; ... send $sContent ...
+EndFunc
+
+_Try()
+    _ReadConfig("missing.ini")  ; throws FileException
+    _SendConfig("")             ; skipped - _OnErrorResume() returns True
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite("File error: " & $e.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

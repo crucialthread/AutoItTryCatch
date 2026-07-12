@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_TryWith - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_TryWith</h1>
+
+<p>Wraps a non-compatible function call and converts a non-zero @error into a generic exception entry on the stack.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_TryWith ( $vReturn [, $iError = @error] )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$vReturn</td><td>The return value of the wrapped function call. Pass the function call directly as this argument.</td></tr>
+<tr><td>$iError</td><td><b>[optional]</b> The <code>@error</code> value to evaluate. Defaults to <code>@error</code> captured automatically at the call site - in most cases this argument should not be passed explicitly.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Always</td><td>Returns <code>$vReturn</code> unchanged. If <code>$iError</code> was non-zero, a generic exception entry (type <code>"TryCatchException"</code>, source <code>$UNDEFINED_SOURCE</code>) is added to the scope's stack before returning.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    <code>_TryWith()</code> integrates AutoIt built-in functions and third-party UDFs
+    that signal errors via <code>@error</code>/<code>SetError()</code> into the
+    exception stack, without modifying those functions.
+</p>
+<p>
+    <b>Plain <code>_TryWith()</code> always runs</b> regardless of whether exceptions
+    already exist on the scope's stack. This is the key difference from compatible
+    try/catch functions. It adds its own entry independently:
+</p>
+<pre>
+; This always executes, even if a prior exception exists on the stack
+_TryWith(SomeFunc())
+</pre>
+<p>
+    <b>To make <code>_TryWith()</code> behave like a compatible function</b> - skipping
+    its execution if a prior exception is on the stack - combine it with
+    <code>_NoErr()</code>. This is the <b>preferred pattern</b>:
+</p>
+<pre>
+; Skips if prior exception exists on the stack, captures @error if it runs and fails
+_TryWith(_NoErr() ? SomeFunc() : Null)
+</pre>
+<p>
+    Because <code>$iError</code> defaults to <code>@error</code>, AutoIt captures the
+    error value automatically at the call site. The function call and the error capture
+    happen in one expression - never split them across lines:
+</p>
+<pre>
+; Correct - @error captured automatically at the call site
+Local $sContent = _TryWith(FileRead("config.ini"))
+
+; Wrong - @error is already reset to 0 by the time the second line runs
+Local $sContent = FileRead("config.ini")
+_TryWith($sContent)
+</pre>
+<p>
+    Generic entries added by <code>_TryWith()</code> use <code>"TryCatchException"</code>
+    as the exception type and <code>$UNDEFINED_SOURCE</code> as the source, which
+    distinguishes them from named entries added by <code>_ThrowException()</code> in
+    stack trace inspection.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="NoErr.htm">_NoErr</a>,
+    <a href="OnErrorResume.htm">_OnErrorResume</a>,
+    <a href="../concepts.htm">Concepts - Integrating Non-Compatible Functions</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_Try()
+    ; Preferred: _TryWith + _NoErr() - skips if prior exception, captures @error if it runs
+    Local $sContent = _TryWith(_NoErr() ? FileRead("config.ini") : Null)
+
+    ; The next line also uses _NoErr() so it skips if FileRead failed above
+    _TryWith(_NoErr() ? ConsoleWrite("Read " & StringLen($sContent) & " bytes" & @CRLF) : Null)
+
+Local $e
+If _Catch($e) Then
+    ConsoleWrite("Failed: " & $e.sSource & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+<h2>Example - plain _TryWith() (always runs)</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_Try()
+    ; This always runs regardless of any prior exceptions on the stack
+    Local $sContent = _TryWith(FileRead("config.ini"))
+
+    ; This also always runs - if FileRead failed, $sContent may be empty/invalid
+    ; Use _NoErr() guard above to prevent this
+    ConsoleWrite("Length: " & StringLen($sContent) & @CRLF)
+
+Local $e
+If _Catch($e) Then
+    ConsoleWrite("Caught generic exception" & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

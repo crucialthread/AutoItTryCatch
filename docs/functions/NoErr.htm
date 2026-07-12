@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_NoErr - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_NoErr</h1>
+
+<p>Returns True if no exceptions exist on the current scope's stack. Used with _TryWith() to make non-compatible function calls skip when a prior exception exists.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_NoErr ( )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>None.</td><td>This function takes no parameters.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>True</td><td>No exceptions on the current scope's stack. Safe to proceed.</td></tr>
+<tr><td>False</td><td>Exceptions exist on the current scope's stack.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    <code>_NoErr()</code> is the logical inverse of <code>_OnErrorResume()</code>.
+    Its primary purpose is to enable <code>_TryWith()</code> to behave like a
+    compatible try/catch function - skipping its wrapped call when a prior exception
+    already exists on the scope's stack:
+</p>
+<pre>
+_TryWith(_NoErr() ? SomeNonCompatibleFunc() : Null)
+</pre>
+<p>
+    Without <code>_NoErr()</code>, plain <code>_TryWith(SomeNonCompatibleFunc())</code>
+    always runs regardless of prior exceptions. The <code>_NoErr()</code> guard provides
+    the same skip-on-prior-exception behavior that <code>_OnErrorResume()</code> provides
+    for compatible functions, making this the <b>preferred pattern</b> when wrapping
+    non-compatible functions.
+</p>
+<p>
+    Like <code>_OnErrorResume()</code>, <code>_NoErr()</code> checks the exception stack,
+    not AutoIt's <code>@error</code>. It is independent of AutoIt's native error system.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="TryWith.htm">_TryWith</a>,
+    <a href="OnErrorResume.htm">_OnErrorResume</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadFile($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadFile), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    ; Compatible function - skips on prior exception via _OnErrorResume()
+    Local $sContent = _ReadFile("missing.ini")
+
+    ; Non-compatible wrapped with _NoErr() - also skips on prior exception
+    ; If _ReadFile threw, this is skipped entirely
+    _TryWith(_NoErr() ? ConsoleWrite("Content: " & $sContent & @CRLF) : Null)
+
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite("Caught: " & $e.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

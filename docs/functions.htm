@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Function Reference - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+
+<h2>Try/Catch Control Flow</h2>
+<table>
+<tr><td><a href="functions/Try.htm">_Try</a></td><td>Opens a try scope and activates the exception stack for the enclosed code.</td></tr>
+<tr><td><a href="functions/EndTry.htm">_EndTry</a></td><td>Closes the current try scope.</td></tr>
+<tr><td><a href="functions/Catch.htm">_Catch</a></td><td>Checks the current scope's stack for a matching exception entry and returns True if found.</td></tr>
+<tr><td><a href="functions/AsExceptionType.htm">_AsExceptionType</a></td><td>Normalizes an exception type specification (single name, comma-separated list, or array) for use with _Catch().</td></tr>
+</table>
+
+<h2>Compatible Try/Catch Functions</h2>
+<p>These two functions work together to build compatible try/catch functions - functions that participate fully in the exception model by skipping their work when a prior exception is already on the stack.</p>
+<table>
+<tr><td><a href="functions/OnErrorResume.htm">_OnErrorResume</a></td><td>Returns True if exceptions exist on the current scope's stack. Used as the skip guard at the start of every compatible try/catch function.</td></tr>
+<tr><td><a href="functions/ThrowException.htm">_ThrowException</a></td><td>Adds a named exception entry to the current scope's stack. Used inside compatible try/catch functions to signal failure.</td></tr>
+</table>
+
+<h2>Non-Compatible Function Integration</h2>
+<p>These two functions work together to integrate non-compatible functions (those using @error/SetError()) into the exception model.</p>
+<table>
+<tr><td><a href="functions/TryWith.htm">_TryWith</a></td><td>Wraps a non-compatible function call and converts a non-zero @error into a generic exception entry on the stack.</td></tr>
+<tr><td><a href="functions/NoErr.htm">_NoErr</a></td><td>Returns True if no exceptions exist on the stack. Used with _TryWith() to make non-compatible functions skip when a prior exception exists.</td></tr>
+</table>
+
+<h2>Stack Inspection</h2>
+<table>
+<tr><td><a href="functions/StackTrace.htm">_StackTrace</a></td><td>Returns the current scope's exception entries, optionally passing them through a handler function.</td></tr>
+<tr><td><a href="functions/FormatStackTrace.htm">_FormatStackTrace</a></td><td>Formats exception stack entries as a human-readable string.</td></tr>
+</table>
+
+<h2>Exception Registry</h2>
+<table>
+<tr><td><a href="functions/RegisterException.htm">_RegisterException</a></td><td>Registers a named exception type in the global exception registry.</td></tr>
+<tr><td><a href="functions/GetExceptionMessage.htm">_GetExceptionMessage</a></td><td>Returns the registered default message for a named exception type.</td></tr>
+<tr><td><a href="functions/GetExceptionCode.htm">_GetExceptionCode</a></td><td>Returns the numeric code associated with a named exception type.</td></tr>
+<tr><td><a href="functions/GetExceptionParent.htm">_GetExceptionParent</a></td><td>Returns the parent type name of a named exception type.</td></tr>
+<tr><td><a href="functions/IsExceptionExists.htm">_IsExceptionExists</a></td><td>Returns True if a named exception type is registered.</td></tr>
+<tr><td><a href="functions/IsExceptionOf.htm">_IsExceptionOf</a></td><td>Returns True if a named exception type is equal to or descends from another type.</td></tr>
+<tr><td><a href="functions/ExtendsException.htm">_ExtendsException</a></td><td>Returns True if a named exception type directly or indirectly extends another type.</td></tr>
+<tr><td><a href="functions/AsErrCode.htm">_AsErrCode</a></td><td>Resolves an exception code - validates a provided code or returns the next auto-incremented value.</td></tr>
+</table>
+
+</body>
+</html>

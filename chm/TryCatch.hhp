@@ -1,0 +1,41 @@
+[OPTIONS]
+Compatibility=1.1 or later
+Compiled file=TryCatch.chm
+Contents file=TryCatch.hhc
+Index file=TryCatch.hhk
+Default topic=html\index.htm
+Default Window=Main
+Display compile progress=No
+Full-text search=Yes
+Language=0x409 English (United States)
+Title=AutoIt TryCatch Solution
+
+[WINDOWS]
+Main="AutoIt TryCatch Solution","TryCatch.hhc","TryCatch.hhk","html\index.htm","html\index.htm",,,,,0x63520,,0x10384e,,,,,,,,0
+
+[FILES]
+html\index.htm
+html\getting-started.htm
+html\concepts.htm
+html\functions.htm
+html\functions\Try.htm
+html\functions\EndTry.htm
+html\functions\Catch.htm
+html\functions\ThrowException.htm
+html\functions\OnErrorResume.htm
+html\functions\NoErr.htm
+html\functions\TryWith.htm
+html\functions\AsExceptionType.htm
+html\functions\StackTrace.htm
+html\functions\FormatStackTrace.htm
+html\functions\RegisterException.htm
+html\functions\GetExceptionMessage.htm
+html\functions\GetExceptionCode.htm
+html\functions\GetExceptionParent.htm
+html\functions\IsExceptionExists.htm
+html\functions\IsExceptionOf.htm
+html\functions\ExtendsException.htm
+html\functions\AsErrCode.htm
+html\constants.htm
+html\lint.htm
+html\css\default.css

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="index.htm">Welcome</a>
+    <a href="getting-started.htm">Getting Started</a>
+    <a href="concepts.htm">Concepts</a>
+    <a href="functions.htm">Function Reference</a>
+    <a href="constants.htm">Constants</a>
+    <a href="lint.htm">Lint Tool</a>
+</div>
+
+<h1>AutoIt TryCatch Solution</h1>
+
+<p>
+    The <b>AutoIt TryCatch Solution</b> brings structured exception handling to AutoIt,
+    modeled after the try/catch/throw pattern found in modern programming languages.
+    It consists of two libraries - <code>TryCatch.au3</code> (which includes
+    <code>Exception.au3</code> automatically):
+</p>
+
+<table>
+<tr>
+    <td>TryCatch.au3</td>
+    <td>The core try/catch engine. Provides <code>_Try()</code>, <code>_Catch()</code>,
+    <code>_EndTry()</code>, <code>_ThrowException()</code>, <code>_OnErrorResume()</code>,
+    <code>_TryWith()</code>, and supporting functions for writing exception-safe code.</td>
+</tr>
+<tr>
+    <td>Exception.au3</td>
+    <td>The exception type registry. Provides <code>_RegisterException()</code> and
+    related functions for defining, querying, and navigating a typed exception hierarchy.
+    Included automatically by <code>TryCatch.au3</code>.</td>
+</tr>
+</table>
+
+<p>
+    A companion tool, <a href="lint.htm">TryCatchLint</a>, provides static analysis
+    to catch common mistakes before they reach runtime.
+</p>
+
+<hr>
+
+<h2>Key Features</h2>
+
+<table>
+<tr>
+    <td>Structured exception handling</td>
+    <td>Write compatible try/catch functions that skip automatically when a prior exception
+    is on the stack, keeping the happy path clean and grouping all failure handling in one place.</td>
+</tr>
+<tr>
+    <td>Compatible with existing code</td>
+    <td><code>_TryWith()</code> and <code>_NoErr()</code> let you integrate functions that use
+    AutoIt's native <code>@error</code>/<code>SetError()</code> convention without modifying them.</td>
+</tr>
+<tr>
+    <td>Typed exceptions</td>
+    <td>Define named exception types with an inheritance hierarchy. Catch specific types or
+    entire families of related exceptions.</td>
+</tr>
+<tr>
+    <td>Stack trace</td>
+    <td><code>_StackTrace()</code> and <code>_FormatStackTrace()</code> let you inspect the
+    current exception scope at any point during execution.</td>
+</tr>
+<tr>
+    <td>Static analysis</td>
+    <td>The <a href="lint.htm">TryCatchLint</a> tool checks for unbalanced
+    <code>_Try()</code>/<code>_EndTry()</code> calls and unregistered exception name
+    references before your code runs.</td>
+</tr>
+</table>
+
+<hr>
+
+<h2>Quick Example</h2>
+
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+; A compatible try/catch function - participates fully in the exception model
+Func _ReadConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Config not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    _ReadConfig("config.ini")
+    _ReadConfig("settings.ini")
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite("Caught: " & $e.sException & " - " & $e.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+<hr>
+
+<h2>Contents</h2>
+
+<p><a href="getting-started.htm">Getting Started</a> - Installation and a complete worked example from scratch.</p>
+<p><a href="concepts.htm">Concepts</a> - How the solution works, compatible functions, exception types, and hierarchy.</p>
+<p><a href="functions.htm">Function Reference</a> - Detailed documentation for every public function.</p>
+<p><a href="constants.htm">Constants Reference</a> - All constants defined by the solution.</p>
+<p><a href="lint.htm">Lint Tool</a> - Static analysis for TryCatch usage.</p>
+
+</body>
+</html>

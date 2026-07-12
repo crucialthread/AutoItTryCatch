@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_IsExceptionOf - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+<h1>Function Reference</h1>
+<hr>
+<h1>_IsExceptionOf</h1>
+<p>Returns True if a named exception type is equal to or descends from another type.</p>
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_IsExceptionOf ( $sName, $sType )
+</div>
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The exception type name to test.</td></tr>
+<tr><td>$sType</td><td>The type to test against.</td></tr>
+</table>
+<h2>Return Value</h2>
+<table>
+<tr><td>True</td><td>$sName is equal to or descends from $sType in the exception hierarchy.</td></tr>
+<tr><td>False</td><td>$sName is not equal to and does not descend from $sType.</td></tr>
+</table>
+<h2>Remarks</h2>
+<p>This is the same hierarchy check used internally by <code>_Catch()</code> to determine whether a thrown exception matches the requested type.</p>
+<h2>Related</h2>
+<p><a href="ExtendsException.htm">_ExtendsException</a>, <a href="Catch.htm">_Catch</a>, <a href="RegisterException.htm">_RegisterException</a></p>
+<h2>Example</h2>
+<pre>
+_RegisterException("IOException",   "An I/O operation failed")
+_RegisterException("FileException", "A file operation failed", "IOException")
+
+ConsoleWrite(_IsExceptionOf("FileException", "IOException") & @CRLF)   ; True
+ConsoleWrite(_IsExceptionOf("FileException", "FileException") & @CRLF) ; True
+ConsoleWrite(_IsExceptionOf("IOException",   "FileException") & @CRLF) ; False
+</pre>
+</body>
+</html>

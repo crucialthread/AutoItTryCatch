@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_Try - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_Try</h1>
+
+<p>Opens a try scope and activates the exception stack for the enclosed code.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_Try ( )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>None.</td><td>This function takes no parameters.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>None.</td><td>This function does not return a meaningful value.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    Opens a new try scope and initializes its exception stack. All compatible try/catch
+    functions and <code>_TryWith(_NoErr() ? ... : Null)</code> calls within this scope
+    will check this stack and skip their execution if any exception entry is present.
+</p>
+<p>
+    Try blocks can be nested. Each <code>_Try()</code> opens one level and each
+    <code>_EndTry()</code> closes one level. Inner scopes have their own independent
+    exception stacks.
+</p>
+<p>
+    Every <code>_Try()</code> must have a corresponding <code>_EndTry()</code>.
+    Failing to close a try scope corrupts the internal depth counter and causes
+    unpredictable behavior. Use the <a href="../lint.htm">TryCatchLint</a> tool to
+    detect unbalanced pairs.
+</p>
+<p>
+    If you need to <code>Return</code> from inside a try scope, always call
+    <code>_EndTry()</code> first. See
+    <a href="../getting-started.htm">Getting Started</a> for the supported early-return patterns.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="EndTry.htm">_EndTry</a>,
+    <a href="Catch.htm">_Catch</a>,
+    <a href="OnErrorResume.htm">_OnErrorResume</a>,
+    <a href="ThrowException.htm">_ThrowException</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("FileException", "A file operation failed")
+
+Func _ReadConfig($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadConfig), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    _ReadConfig("config.ini")
+    _ReadConfig("settings.ini")
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ConsoleWrite("Caught: " & $e.sMessage & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

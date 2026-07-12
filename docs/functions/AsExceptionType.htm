@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_AsExceptionType - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_AsExceptionType</h1>
+
+<p>Normalizes an exception type specification into an array for use with _Catch().</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_AsExceptionType ( $vException )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$vException</td><td>Accepts three forms:<br><br>
+    - A single name: <code>"FileException"</code><br>
+    - A comma-separated list: <code>"FileException,NetworkException"</code><br>
+    - An already-built array: passed through unchanged<br><br>
+    Order matters in comma-separated lists - the first type listed is checked first.
+</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>A 0-based array of exception type name strings, suitable for passing to <code>_Catch()</code>.</td></tr>
+</table>
+
+<h2>Remarks</h2>
+<p>
+    Using <code>_AsExceptionType()</code> is the <b>recommended pattern</b> when
+    specifying exception types for <code>_Catch()</code>, even for a single type.
+    It improves readability and makes all <code>_Catch()</code> calls consistent
+    in style:
+</p>
+<pre>
+; Recommended - consistent and readable
+_Catch($e, _AsExceptionType("FileException"))
+_Catch($e, _AsExceptionType("FileException,NetworkException"))
+
+; Also valid - bare string accepted by _Catch() for single types
+_Catch($e, "FileException")
+</pre>
+<p>
+    <b>List order beats recency:</b> when a comma-separated list is used, the type
+    listed first is checked first, regardless of which exception was added most
+    recently to the stack. This makes matching order explicit and predictable.
+</p>
+
+<h2>Related</h2>
+<p>
+    <a href="Catch.htm">_Catch</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+#include &lt;TryCatch.au3&gt;
+
+_RegisterException("IOException",      "An I/O operation failed")
+_RegisterException("FileException",    "A file operation failed",    "IOException")
+_RegisterException("NetworkException", "A network operation failed", "IOException")
+
+Func _ReadFile($sPath)
+    If _OnErrorResume() Then Return SetError(__GetStackCount(), 0, False)
+    If Not FileExists($sPath) Then
+        Return SetError(_ThrowException("FileException", "Not found: " & $sPath, _ReadFile), 0, False)
+    EndIf
+    Return FileRead($sPath)
+EndFunc
+
+_Try()
+    _ReadFile("config.ini")
+Local $e
+If _Catch($e, _AsExceptionType("FileException")) Then
+    ; Single type - _AsExceptionType recommended even here
+    ConsoleWrite("File error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e, _AsExceptionType("FileException,NetworkException")) Then
+    ; Multiple types - _AsExceptionType required
+    ConsoleWrite("I/O error: " & $e.sMessage & @CRLF)
+ElseIf _Catch($e) Then
+    ConsoleWrite("Unexpected: " & $e.sException & @CRLF)
+EndIf
+_EndTry()
+</pre>
+
+</body>
+</html>

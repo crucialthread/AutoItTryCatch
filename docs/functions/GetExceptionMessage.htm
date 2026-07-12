@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>_GetExceptionMessage - AutoIt TryCatch Solution</title>
+<link rel="stylesheet" type="text/css" href="../css/default.css">
+</head>
+<body>
+<div class="topnav">
+    <a href="../index.htm">Welcome</a>
+    <a href="../getting-started.htm">Getting Started</a>
+    <a href="../concepts.htm">Concepts</a>
+    <a href="../functions.htm">Function Reference</a>
+    <a href="../constants.htm">Constants</a>
+    <a href="../lint.htm">Lint Tool</a>
+</div>
+
+<h1>Function Reference</h1>
+<hr>
+<h1>_GetExceptionMessage</h1>
+
+<p>Returns the registered default message for a named exception type.</p>
+
+<div class="signature">
+#include &lt;TryCatch.au3&gt;<br>
+_GetExceptionMessage ( $sName )
+</div>
+
+<h2>Parameters</h2>
+<table>
+<tr><td>$sName</td><td>The registered exception type name.</td></tr>
+</table>
+
+<h2>Return Value</h2>
+<table>
+<tr><td>Success</td><td>The default message string registered for this type.</td></tr>
+<tr><td>Failure</td><td>Empty string and @error set if the name is not registered.</td></tr>
+</table>
+
+<h2>Related</h2>
+<p>
+    <a href="RegisterException.htm">_RegisterException</a>,
+    <a href="GetExceptionCode.htm">_GetExceptionCode</a>,
+    <a href="GetExceptionParent.htm">_GetExceptionParent</a>
+</p>
+
+<h2>Example</h2>
+<pre>
+_RegisterException("FileException", "A file operation failed")
+ConsoleWrite(_GetExceptionMessage("FileException") & @CRLF)
+; Output: A file operation failed
+</pre>
+
+</body>
+</html>
