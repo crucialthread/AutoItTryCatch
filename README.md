@@ -2,6 +2,8 @@
 
 A try/catch pattern implementation for AutoIt. Brings structured exception handling to AutoIt with named exception types, an inheritance hierarchy, compatible try/catch functions, and a static analysis lint tool for SciTE.
 
+See the full [documentation](https://crucialthread.github.io/AutoItTryCatch/) for more details.
+
 ## Features
 
 AutoIt TryCatch Solution brings the try/catch pattern to AutoIt, giving developers a structured way to handle errors:
