@@ -9,6 +9,7 @@ body {
     background-color: #FFFFFF;
     margin: 0;
     padding: 0 16px 16px 16px;
+    max-width: 1340px;
 }
 
 h1 {
@@ -17,24 +18,24 @@ h1 {
     color: #000000;
     border-bottom: 1px solid #AAAAAA;
     padding-bottom: 4px;
-    margin-top: 0;
+    margin-top: 8px;
 }
 
 h2 {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: bold;
     color: #000000;
     border-bottom: 1px solid #DDDDDD;
     padding-bottom: 2px;
-    margin-top: 16px;
+    margin-top: 20px;
     margin-bottom: 6px;
 }
 
 h3 {
     font-size: 13px;
     font-weight: bold;
-    color: #000000;
-    margin-top: 12px;
+    color: navy;
+    margin-top: 14px;
     margin-bottom: 4px;
 }
 
@@ -44,11 +45,16 @@ p {
 }
 
 a {
-    color: #000099;
+    color: #00709f;
     text-decoration: none;
 }
 
+a:visited {
+    color: #03697a;
+}
+
 a:hover {
+    color: #3390b1;
     text-decoration: underline;
 }
 
@@ -107,7 +113,7 @@ table td:first-child {
 }
 
 .topnav a {
-    color: #000099;
+    color: #00709f;
     margin-right: 12px;
 }
 
@@ -120,9 +126,19 @@ hr {
 .note {
     background-color: #FFFFF0;
     border-left: 3px solid #CCCC00;
-    padding: 4px 8px;
+    padding: 6px 10px;
     margin: 8px 0;
     font-size: 12px;
+}
+
+.note ul {
+    margin: 4px 0;
+    padding-left: 20px;
+    line-height: 1.8;
+}
+
+.note ul li {
+    margin: 2px 0;
 }
 
 .warning {
